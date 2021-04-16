@@ -20,7 +20,7 @@ public class POJO {
     private String puesto;
     private LocalDate fechaInicio;
     private LocalDate fechaFin;
-    private char telefono;
+    private String telefono;
     private boolean evaluador;
     private boolean coordinador;
     
@@ -65,11 +65,11 @@ public class POJO {
         this.fechaFin = fechaFin;
     }
 
-    public char getTelefono() {
+    public String getTelefono() {
         return telefono;
     }
 
-    public void setTelefono(char telefono) {
+    public void setTelefono(String telefono) {
         this.telefono = telefono;
     }
 
@@ -91,7 +91,7 @@ public class POJO {
 
     @Override
     public String toString() {
-        return "POJO{" + "empleado=" + empleado + ", dni=" + dni + ", puesto=" + puesto + ", fechaInicio=" + fechaInicio + ", fechaFin=" + fechaFin + ", telefono=" + telefono + ", evaluador=" + evaluador + ", coordinador=" + coordinador + '}';
+        return empleado + "," + dni + "," + puesto + "," + fechaInicio + "," + fechaFin + "," + telefono + "," + evaluador + "," + coordinador ;
     }
     
     
