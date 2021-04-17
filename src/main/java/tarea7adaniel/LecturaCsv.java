@@ -14,7 +14,6 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Scanner;
 
 /**
@@ -31,9 +30,11 @@ public class LecturaCsv {
         // Variables para guardar los datos que se van leyendo
         String[] tokens;
         String linea;
+        //Esta vriable nos permite almacenar los tipos de datos dentro
+        String[] primeraLinea = new String[8];
 
         //Array para almacenar las posicione donde se encuentra la secuencia de caracteres
-        ArrayList<POJO> lista = new ArrayList<POJO>();
+        ArrayList<POJO> lista = new ArrayList<>();
 
         System.out.println("Leyendo el fichero: " + idFichero);
 
@@ -41,6 +42,10 @@ public class LecturaCsv {
         // Estructura try-with-resources. Permite cerrar los recursos una vez finalizadas
         // las operaciones con el archivo
         try ( Scanner datosFichero = new Scanner(new File(idFichero), "ISO-8859-1")) {
+
+            linea = datosFichero.nextLine();
+
+            primeraLinea = linea.split(",");
 
             datosFichero.nextLine();
 
@@ -78,9 +83,13 @@ public class LecturaCsv {
                     pojo.setTelefono(quitarComillas(tokens[6]));
                 }
 
+                //Aqui comprbaremos que es si o no y segun esto devolveremos true o false
+                boolean evaluar = comprobar(quitarComillas(tokens[7]));
+                boolean coordinar = comprobar(quitarComillas(tokens[8]));
+
                 //En estos dos atributos no ha hecho falta quitar las comillas
-                pojo.setEvaluador(Boolean.parseBoolean(tokens[7]));
-                pojo.setCoordinador(Boolean.parseBoolean(tokens[8]));
+                pojo.setEvaluador(evaluar);
+                pojo.setCoordinador(coordinar);
 
                 lista.add(pojo);
 
@@ -90,38 +99,54 @@ public class LecturaCsv {
             System.out.println(e.getMessage());
         }
 
-        ArrayList<POJO> empleados = new ArrayList<POJO>(empleados(lista));
-        
-        //-------------------------------------//
+        ArrayList<POJO> empleados = new ArrayList<>(empleados(lista));
 
+        //-------------------------------------//
         // Fichero a crear. Ruta relativa a la carpeta raíz del proyecto
         String ficheroCrear = "POJO.csv";
 
         try ( BufferedWriter flujo = new BufferedWriter(new FileWriter(ficheroCrear))) {
 
+            //Este bucle lo he utilizado para escribir los tipos de datos almacenados en un array anteriormente
+            for (int i = 0; i < primeraLinea.length; i++) {
+
+                if (primeraLinea.length - 1 == i) {
+                    flujo.write(primeraLinea[i]);
+                } else {
+                    flujo.write(primeraLinea[i] + ",");
+                }
+
+            }
+
+            flujo.newLine();
+
             for (int i = 0; i < empleados.size(); i++) {
+
                 flujo.write(empleados.get(i).getEmpleado() + ",");
                 flujo.write(empleados.get(i).getDni() + ",");
                 flujo.write(empleados.get(i).getPuesto() + ",");
                 DateTimeFormatter formato = DateTimeFormatter.ofPattern("dd/MM/yyyy");
                 String fechain = empleados.get(i).getFechaInicio().format(formato);
-                flujo.write( fechain + ",");
-                String fechafi = empleados.get(i).getFechaFin().format(formato);
-                if(fechafi.equalsIgnoreCase("null")){
+                flujo.write(fechain + ",");
+
+                //Aqui comprobamos que la fecha no sea nulla y si es asi escribira el valor como vacio
+                if (empleados.get(i).getFechaFin() == null) {
                     flujo.write(" vacio ,");
-                }else{
-                    flujo.write( fechafi + ",");
+                } else {
+                    //Si la fecha no es nulla la escribira dandole formato
+                    flujo.write(empleados.get(i).getFechaFin().format(formato) + ",");
                 }
-                
-                if(empleados.get(i).equals("null")){
+
+                if (empleados.get(i).getTelefono() == null) {
                     flujo.write(" vacio ,");
-                }else{
+                } else {
                     flujo.write(empleados.get(i).getTelefono() + ",");
                 }
-                
+
                 flujo.write(empleados.get(i).isEvaluador() + ",");
                 flujo.write(empleados.get(i).isCoordinador() + ",");
-                
+
+                //Este metodo salta a la siguiente linea
                 flujo.newLine();
 
             }
@@ -146,7 +171,7 @@ public class LecturaCsv {
     //Metodo que me genera un arraylist con los empleados que llevan mas de 20 años en la empresa
     private static ArrayList<POJO> empleados(ArrayList<POJO> lista) {
 
-        ArrayList<POJO> empleados = new ArrayList<POJO>();
+        ArrayList<POJO> empleados = new ArrayList<>();
 
         LocalDate hoy = LocalDate.now();
 
@@ -169,5 +194,19 @@ public class LecturaCsv {
         }
 
         return empleados;
+    }
+
+    //Metodo que combrueba si es si o no y devuelve un boolean
+    private static boolean comprobar(String bol) {
+
+        boolean opcion;
+
+        if (bol.equalsIgnoreCase("no")) {
+            opcion = false;
+        } else {
+            opcion = true;
+        }
+
+        return opcion;
     }
 }
