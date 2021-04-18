@@ -163,9 +163,7 @@ public class LecturaCsv {
     //Metodo para quitar las comillas del principio y del final a las palabras
     private static String quitarComillas(String palabra) {
 
-        String nueva = palabra.substring(1, palabra.length() - 1);
-
-        return nueva;
+        return palabra.substring(1, palabra.length() - 1);
     }
 
     //Metodo que me genera un arraylist con los empleados que llevan mas de 20 años en la empresa
