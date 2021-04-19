@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Scanner;
+import java.util.stream.Stream;
 
 /**
  *
@@ -33,7 +34,7 @@ public class LecturaCsv {
         //Variable que almacena si hay algún biologo que sea coordinador
         int contadorBiolo = 0;
         //Variable que almacena si hay algún Jonh
-        int contadorNombre= 0;
+        int contadorNombre = 0;
 
         // Variables para guardar los datos que se van leyendo
         String[] tokens;
@@ -62,10 +63,6 @@ public class LecturaCsv {
                 // Se guarda en el array de String cada elemento de la
                 // línea en función del carácter separador ,
                 tokens = linea.split(",");
-
-                contadorInfor += informatico(tokens);
-                contadorBiolo += biologo(tokens);
-                contadorNombre += jonh(tokens);
 
                 //Creamos un objeto POJO vcio donde iremos añadiendole atributos
                 POJO pojo = new POJO();
@@ -109,13 +106,19 @@ public class LecturaCsv {
             System.out.println(e.getMessage());
         }
 
-        System.out.println("El documento " + idFichero + " contiene " + contadorInfor + " Informáticos");
+        //Ejercicios sin Stream
+        
+        //Contadores de los metodos
+        contadorBiolo += biologo(lista);
+        contadorNombre += jonh(lista);
+
+        System.out.println("El documento " + idFichero + " contiene " + informatico(lista) + " Informáticos");
         if (contadorBiolo == 0) {
             System.out.println("No hay biólogos que son coordinadores");
         } else {
             System.out.println("Si hay biólogos que son coordinadores");
         }
-        
+
         if (contadorNombre == 0) {
             System.out.println("No hay empleados llamados Jonh");
         } else {
@@ -130,7 +133,23 @@ public class LecturaCsv {
         for (POJO ls : empleadosNif) {
             System.out.println(ls);
         }
-
+        //-----------------------------------
+        //Ejercicios usando Stream
+        Stream <POJO> numeroInfo = lista.stream().filter(a -> a.getPuesto().contains("Informática"));
+        System.out.println("---------------");
+        System.out.println("Personajes que esten en informática");
+        numeroInfo.forEach(System.out::println);
+        
+        
+        boolean biologo = lista.stream().anyMatch((s) -> s.getPuesto().equalsIgnoreCase("Biología y Geología P.E.S.") &s.isCoordinador());
+        System.out.println("\nHay algún biólogo y coordinador: " + biologo);
+        
+        Stream<POJO> letraN= lista.stream().filter(s -> s.getDni().contains("N"));
+        System.out.println("\nEmpleados que contienen n en el DNI");
+        letraN.forEach(System.out::println);
+        
+        boolean john = lista.stream().anyMatch(s -> s.getEmpleado().contains("John"));
+        System.out.println("\nAlgún empleado se llama John: " + john);
         //-------------------------------------//
         // Fichero a crear. Ruta relativa a la carpeta raíz del proyecto
         String ficheroCrear = "POJO.csv";
@@ -241,20 +260,26 @@ public class LecturaCsv {
     }
 
     //Metodo para contar el número de infromaticos
-    private static int informatico(String[] tokens) {
+    private static int informatico(ArrayList<POJO> lista) {
 
-        if (tokens[3].contains("Informática")) {
-            return 1;
+        int contador = 0;
+
+        for (int i = 0; i < lista.size(); i++) {
+
+            if (lista.get(i).getPuesto().contains("Informática")) {
+                contador += 1;
+            }
+
         }
-        return 0;
+
+        return contador;
     }
 
     //Metodo para comprobar si algún Biologo es coordinador
     private static int biologo(ArrayList<POJO> lista) {
-        
+
         for (int i = 0; i < lista.size(); i++) {
-            if(lista.get(i).getPuesto().equalsIgnoreCase("Biología y Geología P.E.S.") && 
-                    lista.get(i).isCoordinador())){
+            if (lista.get(i).getPuesto().equalsIgnoreCase("Biología y Geología P.E.S.") && lista.get(i).isCoordinador()) {
                 return 1;
             }
         }
@@ -279,10 +304,12 @@ public class LecturaCsv {
     }
 
     //Metodo para comprobar si alguien se llama Jonh
-    private static int jonh(String[] tokens) {
+    private static int jonh(ArrayList<POJO> lista) {
 
-        if (tokens[1].contains("Jonh")) {
-            return 1;
+        for (int i = 0; i < lista.size(); i++) {
+            if (lista.get(i).getEmpleado().contains("Jonh")) {
+                return 1;
+            }
         }
 
         return 0;
