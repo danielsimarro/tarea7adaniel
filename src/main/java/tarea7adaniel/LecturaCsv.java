@@ -12,8 +12,9 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Scanner;
 
 /**
@@ -27,6 +28,13 @@ public class LecturaCsv {
         // Fichero a leer
         String idFichero = "RelPerCen.csv";
 
+        //Contador para contar los puestos que sean informático
+        int contadorInfor = 0;
+        //Variable que almacena si hay algún biologo que sea coordinador
+        int contadorBiolo = 0;
+        //Variable que almacena si hay algún Jonh
+        int contadorNombre= 0;
+
         // Variables para guardar los datos que se van leyendo
         String[] tokens;
         String linea;
@@ -35,8 +43,6 @@ public class LecturaCsv {
 
         //Array para almacenar las posicione donde se encuentra la secuencia de caracteres
         ArrayList<POJO> lista = new ArrayList<>();
-
-        System.out.println("Leyendo el fichero: " + idFichero);
 
         // Inicialización del flujo "datosFichero" en función del archivo llamado "idFichero"
         // Estructura try-with-resources. Permite cerrar los recursos una vez finalizadas
@@ -56,6 +62,10 @@ public class LecturaCsv {
                 // Se guarda en el array de String cada elemento de la
                 // línea en función del carácter separador ,
                 tokens = linea.split(",");
+
+                contadorInfor += informatico(tokens);
+                contadorBiolo += biologo(tokens);
+                contadorNombre += jonh(tokens);
 
                 //Creamos un objeto POJO vcio donde iremos añadiendole atributos
                 POJO pojo = new POJO();
@@ -99,7 +109,27 @@ public class LecturaCsv {
             System.out.println(e.getMessage());
         }
 
+        System.out.println("El documento " + idFichero + " contiene " + contadorInfor + " Informáticos");
+        if (contadorBiolo == 0) {
+            System.out.println("No hay biólogos que son coordinadores");
+        } else {
+            System.out.println("Si hay biólogos que son coordinadores");
+        }
+        
+        if (contadorNombre == 0) {
+            System.out.println("No hay empleados llamados Jonh");
+        } else {
+            System.out.println("Si hay empleados llamados Jonh");
+        }
+
         ArrayList<POJO> empleados = new ArrayList<>(empleados(lista));
+
+        ArrayList<POJO> empleadosNif = new ArrayList<>(nif(lista));
+
+        System.out.println("\nLos empleados que contienen N en su Dni son: ");
+        for (POJO ls : empleadosNif) {
+            System.out.println(ls);
+        }
 
         //-------------------------------------//
         // Fichero a crear. Ruta relativa a la carpeta raíz del proyecto
@@ -131,14 +161,14 @@ public class LecturaCsv {
 
                 //Aqui comprobamos que la fecha no sea nulla y si es asi escribira el valor como vacio
                 if (empleados.get(i).getFechaFin() == null) {
-                    flujo.write(" vacio ,");
+                    flujo.write("vacio,");
                 } else {
                     //Si la fecha no es nulla la escribira dandole formato
                     flujo.write(empleados.get(i).getFechaFin().format(formato) + ",");
                 }
 
                 if (empleados.get(i).getTelefono() == null) {
-                    flujo.write(" vacio ,");
+                    flujo.write("vacio,");
                 } else {
                     flujo.write(empleados.get(i).getTelefono() + ",");
                 }
@@ -153,7 +183,6 @@ public class LecturaCsv {
 
             // Metodo fluh() guarda cambios en disco 
             flujo.flush();
-            System.out.println("Fichero " + ficheroCrear + " creado correctamente.");
         } catch (IOException e) {
             System.out.println(e.getMessage());
         }
@@ -178,15 +207,18 @@ public class LecturaCsv {
             LocalDate fechaFin = lista.get(i).getFechaFin();
 
             if (fechaFin == null) {
-                long tiempoTrascurrido = ChronoUnit.YEARS.between(fechaIn, hoy);
-                if (tiempoTrascurrido > 20) {
+
+                LocalDate fecha = hoy.minusYears(20);
+
+                if (fechaIn.isBefore(fecha)) {
                     empleados.add(lista.get(i));
                 }
-            } else {
-                long tiempo = ChronoUnit.YEARS.between(fechaIn, fechaFin);
-                if (tiempo > 20) {
-                    empleados.add(lista.get(i));
-                }
+                //Con esto calcularia todos los que han trabajado mas de 20 años sin contar a dia de hoy
+//            } else {
+//                long tiempo = ChronoUnit.YEARS.between(fechaIn, fechaFin);
+//                if (tiempo > 20) {
+//                    empleados.add(lista.get(i));
+//                }
             }
 
         }
@@ -206,5 +238,54 @@ public class LecturaCsv {
         }
 
         return opcion;
+    }
+
+    //Metodo para contar el número de infromaticos
+    private static int informatico(String[] tokens) {
+
+        if (tokens[3].contains("Informática")) {
+            return 1;
+        }
+        return 0;
+    }
+
+    //Metodo para comprobar si algún Biologo es coordinador
+    private static int biologo(ArrayList<POJO> lista) {
+        
+        for (int i = 0; i < lista.size(); i++) {
+            if(lista.get(i).getPuesto().equalsIgnoreCase("Biología y Geología P.E.S.") && 
+                    lista.get(i).isCoordinador())){
+                return 1;
+            }
+        }
+        return 0;
+    }
+
+    //Metodo para ordenar los apellidos y obtener los empleados que contengan N en su Nif
+    private static ArrayList<POJO> nif(ArrayList<POJO> lista) {
+
+        ArrayList<POJO> empleados = new ArrayList<>();
+
+        for (int i = 0; i < lista.size(); i++) {
+            if (lista.get(i).getDni().contains("N")) {
+                empleados.add(lista.get(i));
+            }
+        }
+
+        Comparator<POJO> criterio = (p1, p2) -> p1.getEmpleado().compareTo(p2.getEmpleado());
+        Collections.sort(empleados, criterio);
+
+        return empleados;
+    }
+
+    //Metodo para comprobar si alguien se llama Jonh
+    private static int jonh(String[] tokens) {
+
+        if (tokens[1].contains("Jonh")) {
+            return 1;
+        }
+
+        return 0;
+
     }
 }
