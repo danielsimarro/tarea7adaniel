@@ -15,7 +15,9 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.List;
 import java.util.Scanner;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -107,7 +109,6 @@ public class LecturaCsv {
         }
 
         //Ejercicios sin Stream
-        
         //Contadores de los metodos
         contadorBiolo += biologo(lista);
         contadorNombre += jonh(lista);
@@ -135,21 +136,29 @@ public class LecturaCsv {
         }
         //-----------------------------------
         //Ejercicios usando Stream
-        Stream <POJO> numeroInfo = lista.stream().filter(a -> a.getPuesto().contains("Informática"));
+        long cantidad = lista.stream()
+                .filter(a -> a.getPuesto().contains("Informática"))//El stream queda solo con los profesores que cumplan la condición
+                .count();
+                
         System.out.println("---------------");
-        System.out.println("Personajes que esten en informática");
-        numeroInfo.forEach(System.out::println);
+        System.out.println("Personas que esten en informática: " + cantidad);
         
-        
-        boolean biologo = lista.stream().anyMatch((s) -> s.getPuesto().equalsIgnoreCase("Biología y Geología P.E.S.") &s.isCoordinador());
+
+        boolean biologo = lista.stream().anyMatch((s) -> s.getPuesto().contains("Biología") & s.isCoordinador());
         System.out.println("\nHay algún biólogo y coordinador: " + biologo);
-        
-        Stream<POJO> letraN= lista.stream().filter(s -> s.getDni().contains("N"));
+
+        List<String> letraN = lista.stream()
+                .filter(s -> s.getDni().contains("N"))
+                .map(p -> p.getEmpleado())//Nos hemos quedado con un stream de string con los apellidos
+                .collect(Collectors.toList());
         System.out.println("\nEmpleados que contienen n en el DNI");
         letraN.forEach(System.out::println);
-        
+
         boolean john = lista.stream().anyMatch(s -> s.getEmpleado().contains("John"));
         System.out.println("\nAlgún empleado se llama John: " + john);
+        
+        
+        
         //-------------------------------------//
         // Fichero a crear. Ruta relativa a la carpeta raíz del proyecto
         String ficheroCrear = "POJO.csv";
@@ -314,5 +323,24 @@ public class LecturaCsv {
 
         return 0;
 
+    }
+    
+    //Lista con todas las fechas de cese que hay en los pojos
+    private static List<LocalDate> fechas(ArrayList<POJO> lista){
+        List<LocalDate> fecha = lista.stream()
+                .map(p -> p.getFechaFin())//Tenemos un stream de localdate
+                .filter(p -> p != null)//Todos los que no sean null
+                .collect(Collectors.toList());//Con esto se para a una lista de local date
+        
+        return fecha;
+    }
+    
+    //Quiero una lista de los empleados que se jubilan mañana
+    private static List<String>Jubilados(ArrayList<POJO> lista, LocalDate fechaj){
+        List<String> jubi = lista.stream()
+                .filter(p -> p.getFechaFin().equals(fechaj))
+                .map(p -> p.getEmpleado())
+                .collect(Collectors.toList());
+        return jubi;
     }
 }
